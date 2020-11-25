@@ -5,18 +5,18 @@ from scipy.interpolate import UnivariateSpline, interp1d
 
 class HyperbolicTangentVelocityProfile(object):
 
-    def __init__(self, start_vel=0.1, stop_vel=1., transition_time=1, resolution=1000, range_val=3.15):
+    def __init__(self, start_vel=0.1, stop_vel=1., transition_time=1, resolution=1000, range_val=3.5):
 
         self._range_map = range_val
-        self._time_map = interp1d(np.linspace(0,transition_time,resolution),np.linspace(-self._range_map,self._range_map,resolution), kind='linear')
-        self._vel_map = interp1d(np.linspace(start_vel,stop_vel,resolution),np.linspace(-1.,1.,resolution), kind='linear')
+        self._time_map = interp1d(np.linspace(0,transition_time,resolution),np.linspace(-self._range_map,self._range_map,resolution), kind='cubic')
+        self._vel_map = interp1d(np.linspace(start_vel,stop_vel,resolution),np.linspace(-1.,1.,resolution), kind='cubic')
 
-        self._inv_time_map = interp1d(np.linspace(-self._range_map,self._range_map,resolution), np.linspace(0,transition_time,resolution), kind='linear')
-        self._inv_vel_map = interp1d(np.linspace(-1.,1.,resolution),np.linspace(start_vel,stop_vel,resolution), kind='linear')
+        self._inv_time_map = interp1d(np.linspace(-self._range_map,self._range_map,resolution), np.linspace(0,transition_time,resolution), kind='cubic')
+        self._inv_vel_map = interp1d(np.linspace(-1.,1.,resolution),np.linspace(start_vel,stop_vel,resolution), kind='cubic')
 
 
     def get_velocity_at(self, t):
-        return self._inv_vel_map(np.tanh(self._time_map(t)))
+        return np.round(self._inv_vel_map(np.tanh(self._time_map(t))),3)
 
     def get_time_when_velocity_is(self, vel):
         return self._inv_time_map(np.arctanh(self._vel_map(vel)))
@@ -26,7 +26,7 @@ class HyperbolicTangentVelocityProfile(object):
         return self.get_velocity_at(timeline), timeline
 
     def get_total_distance_at(self, t, resolution=1000):
-        return self.get_full_distance_curve(resolution=resolution)[0][t]
+        return self.get_full_distance_curve(resolution=resolution)[0][int(t*resolution)-1]
 
     def get_full_distance_curve(self, resolution=1000):
         vel_curve, timeline = self.get_full_velocity_curve(resolution=resolution)
