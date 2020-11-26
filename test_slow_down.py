@@ -10,19 +10,6 @@ def find_nearest(array, value):
     idx = (np.abs(array - value)).argmin()
     return idx, array[idx]
 
-def time_dilate_trajectory(pos_traj, times):
-    # print pos_traj, times
-    # raw_input()
-    times = np.abs(times)
-    x = np.asarray(range(pos_traj.shape[0]))*times
-    f1 = interp1d(x, pos_traj)
-    # f2 = interp1d(x, ori_traj, kind='nearest', axis=0)
-
-    # plt.plot(f1(range(int(x[-1])+1)))
-    # plt.show()
-    # print 
-    return f1(range(int(x[-1])+1))
-
 def get_modified_traj(traj, timeline, tr_point, tr_vel):
     
     dist_array = np.cumsum(np.abs(np.diff(traj,prepend=traj[0])))
@@ -78,7 +65,7 @@ def get_modified_traj(traj, timeline, tr_point, tr_vel):
     
     vel_curve = np.append(np.asarray([vel for _ in range(start_idx)]),vel_curve)
 
-    return final_traj, final_timeline, vel_curve
+    return final_traj, final_timeline#, vel_curve
 
 
 
@@ -90,7 +77,7 @@ if __name__ == "__main__":
     tr_point = 3
     tr_vel = 0.5
 
-    new_traj, new_timeline, vel = get_modified_traj(traj, timeline, tr_point, tr_vel)
+    new_traj, new_timeline = get_modified_traj(traj, timeline, tr_point, tr_vel)
 
     vel = np.gradient(new_traj,new_timeline)
     # vel_map = interp1d(new_timeline,vel)
@@ -103,12 +90,16 @@ if __name__ == "__main__":
     plt.subplot(3,1,1)
     plt.ylabel("Vel Profile")
     plt.plot(new_timeline,vel,label='vel')
+    # plt.
+    # plt.plot(new_timeline[new_traj<=3],vel[new_traj<=3])
     plt.grid()
     # plt.xlim([4,5.5])
 
     # plt.xlim(0,1)
     plt.subplot(3,1,2)
     plt.plot(new_timeline,new_traj,label='pos')
+    plt.plot(timeline,traj)
+    # plt.plot(new_timeline[new_traj<=3],new_traj[new_traj<=3])
     # plt.plot(timeline,tot_pos,label='old_pos')
     plt.ylabel("Pos Traj")
     plt.grid()
@@ -116,6 +107,7 @@ if __name__ == "__main__":
     # plt.xlim(0,1)
     plt.subplot(3,1,3)
     plt.plot(new_timeline,acc,label='acc')
+    # plt.plot(new_timeline[new_traj<=3],acc[new_traj<=3])
     plt.ylabel("Acc Profile")
     plt.grid()
     # plt.xlim([4,5.5])

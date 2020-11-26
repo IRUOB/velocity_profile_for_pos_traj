@@ -20,7 +20,7 @@ class HyperbolicTangentVelocityProfile(object):
             t[t<0.] = 0
         else:
             t = max(min(t,1.),0)
-        return np.round(self._inv_vel_map(np.tanh(self._time_map(t))),3)
+        return np.round(self._inv_vel_map(np.tanh(self._time_map(t))),7)
 
     def get_time_when_velocity_is(self, vel):
         return self._inv_time_map(np.arctanh(self._vel_map(vel)))
