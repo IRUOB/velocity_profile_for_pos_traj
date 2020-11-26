@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.interpolate import UnivariateSpline, interp1d
 
 class LogisticFuncUtils(object):
 
@@ -33,3 +34,8 @@ class LogisticFuncUtils(object):
     @staticmethod
     def solve_for_k(x, y,x0=0.,L=1,startval=0):
         return -(np.log((L-startval)/(y-startval) - 1))/(x-x0)
+
+def get_distance_from_vel_curve(vel_profile, timeline):
+    spl = UnivariateSpline(timeline, vel_profile, s=0)
+    ispl = spl.antiderivative()
+    return ispl(timeline)

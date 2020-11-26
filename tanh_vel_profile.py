@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.integrate as integrate
 from scipy.interpolate import UnivariateSpline, interp1d
 
 class HyperbolicTangentVelocityProfile(object):
@@ -16,6 +15,11 @@ class HyperbolicTangentVelocityProfile(object):
 
 
     def get_velocity_at(self, t):
+        if isinstance(t,np.ndarray):
+            t[t>1.] = 1
+            t[t<0.] = 0
+        else:
+            t = max(min(t,1.),0)
         return np.round(self._inv_vel_map(np.tanh(self._time_map(t))),3)
 
     def get_time_when_velocity_is(self, vel):
