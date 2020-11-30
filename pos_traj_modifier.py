@@ -3,7 +3,7 @@ from tanh_vel_profile import HyperbolicTangentVelocityProfile as TanhVP
 from sigmoid_vel_profile import SigmoidVelocityProfile as SigVP
 from scipy.interpolate import UnivariateSpline, interp1d
 import matplotlib.pyplot as plt
-from utils import get_distance_from_vel_curve
+from velprof_utils import get_distance_from_vel_curve
 
 def find_nearest(array, value):
     if len(array.shape) == 1:
