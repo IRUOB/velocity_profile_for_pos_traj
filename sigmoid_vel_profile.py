@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.integrate as integrate
 from scipy.interpolate import UnivariateSpline, interp1d
-from utils import LogisticFuncUtils as SigFunc
+from velprof_utils import LogisticFuncUtils as SigFunc
 
 class SigmoidVelocityProfile(object):
 

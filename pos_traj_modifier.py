@@ -4,7 +4,7 @@ from smooth_exp_vel_profile import BoundedSmoothVelocityProfile as BSVp
 from sigmoid_vel_profile import SigmoidVelocityProfile as SigVP
 from scipy.interpolate import UnivariateSpline, interp1d
 import matplotlib.pyplot as plt
-from utils import get_distance_from_vel_curve
+from velprof_utils import get_distance_from_vel_curve
 
 PROFILE_TYPE = BSVp # TanhVP
 
