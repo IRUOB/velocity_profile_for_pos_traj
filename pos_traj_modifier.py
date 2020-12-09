@@ -1,9 +1,12 @@
 import numpy as np
 from tanh_vel_profile import HyperbolicTangentVelocityProfile as TanhVP
+from smooth_exp_vel_profile import BoundedSmoothVelocityProfile as BSVp
 from sigmoid_vel_profile import SigmoidVelocityProfile as SigVP
 from scipy.interpolate import UnivariateSpline, interp1d
 import matplotlib.pyplot as plt
 from utils import get_distance_from_vel_curve
+
+PROFILE_TYPE = BSVp # TanhVP
 
 def find_nearest(array, value):
     if len(array.shape) == 1:
@@ -68,7 +71,7 @@ def smooth_start_traj(traj, timeline, smooth_start_duration=1., start_vel=0., en
         end_vel = ori_vel_prof.mean() # for smoothness this has to be the velocity of the trajectory immediately after the transition happens. This will not be forced by this method and has to be done separately if needed.
 
     # create a tanh velocity profile that transitions from the detected mean velocity to desired velocity in the specified transition time. The resolution is adjusted to match the same as that of the trajectory
-    vp = TanhVP(start_vel, end_vel, smooth_start_duration, int(timeline.size*smooth_start_duration/(timeline[-1]-timeline[0])))
+    vp = PROFILE_TYPE(start_vel, end_vel, smooth_start_duration, int(timeline.size*smooth_start_duration/(timeline[-1]-timeline[0])))
 
     # Find the total distance attained at the end of the smooth_start_duration when following the transition velocity profile
     tanh_curve_dist = vp.get_total_distance_at(smooth_start_duration)
@@ -133,7 +136,7 @@ def get_slowed_down_traj(traj, timeline, tr_point, tr_vel, transition_duration=1
     timeline = timeline.flatten()
 
     # create a tanh velocity profile that transitions from the detected mean velocity to desired velocity in the specified transition time. The resolution is adjusted to match the same as that of the trajectory
-    vp = TanhVP(ori_vel_avg, tr_vel, transition_duration, int(timeline.size*transition_duration/(timeline[-1]-timeline[0])))
+    vp = PROFILE_TYPE(ori_vel_avg, tr_vel, transition_duration, int(timeline.size*transition_duration/(timeline[-1]-timeline[0])))
 
     # find the index in the original trajectory where the tr_point is closest
     tanh_end_idx, tanh_end_val = find_nearest(traj,tr_point)
