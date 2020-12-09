@@ -102,7 +102,7 @@ def smooth_start_traj(traj, timeline, smooth_start_duration=1., start_vel=0., en
 
 
 
-def get_slowed_down_traj(traj, timeline, tr_point, tr_vel, transition_duration=1., interpolated=False, smooth_start=True, **smooth_start_kwargs):
+def get_slowed_down_traj(traj, timeline, tr_point, tr_vel, transition_duration=1., interpolated=False, smooth_start=True, return_transition_t=False, **smooth_start_kwargs):
     """
     Get the modified position trajectory when the velocity has to be switched to 'tr_vel' smoothly
     by the time it enters 'tr_point'. For optimality, the velocity transition should be completed
@@ -181,4 +181,7 @@ def get_slowed_down_traj(traj, timeline, tr_point, tr_vel, transition_duration=1
     if smooth_start:
         return smooth_start_traj(final_traj, final_timeline, end_vel=ori_vel_avg, interpolated=interpolated, **smooth_start_kwargs)
     
-    return final_traj, final_timeline
+    if return_transition_t:
+        return final_traj, final_timeline, transition_timeline[0]
+    else:
+        return final_traj, final_timeline
