@@ -2,30 +2,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import UnivariateSpline, interp1d
 
-class BoundedSmoothVelocityProfile(object):
+
+class C4SmoothVelocityProfile(object):
+    """
+    https://ieeexplore.ieee.org/abstract/document/8594339
+    """
 
     @staticmethod
-    def g(x, T, v1, v2):
+    def p(x, T, v1, v2, m0=0., m1=0.):
         x = np.asarray(x)
-        
-        def f(x):
-            y = x.copy()
-            y[y<=0.] = 0.
-            y[y>0.] = np.exp(-1./(y[y>0.]/T))
-            return y
+        x[x < 0.] = 0
+        x[x > T] = T
 
-        def g_(x):
-            y = x.copy()
-            y[y >= 1.] = 1.
-            y = f(y)/(f(y)+f(1.-y))
-            return y*v2 + (1-y)*v1
-            
-        return g_(x/T)
+        def p_(x):
+            return -20*x**7 + 70*x**6 - 84*x**5 + 35*x**4
         
+        y = p_(x/T)
+        return y*v2 + (1-y)*v1
+
     def __init__(self, start_vel=0.1, stop_vel=1., transition_time=1, resolution=1000, *args, **kwargs):
 
         self._max_time = transition_time
-        self._vel_map = lambda x: BoundedSmoothVelocityProfile.g(
+        self._vel_map = lambda x: C4SmoothVelocityProfile.p(
             x, self._max_time, start_vel, stop_vel)
 
     def get_velocity_at(self, t):
@@ -55,15 +53,22 @@ class BoundedSmoothVelocityProfile(object):
         return np.gradient(v, t), t
 
     def get_acceleration_at(self, t, resolution=1000):
-        return self.get_full_acceleration_curve()[0][t]
+        return self.get_full_acceleration_curve(resolution=resolution)[0][int(t*resolution)-1]
 
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    a = BoundedSmoothVelocityProfile.g
-    b = np.linspace(-1.,1.5,100)
-    y= a(b)
-    plt.plot(b,y)
+    a = C4SplineVelocityProfile(0.1, 1.2, 1., 1000)
+    vel, T = a.get_full_velocity_curve()
+    acc, T = a.get_full_acceleration_curve()
+    dist, T = a.get_full_distance_curve()
+    plt.subplot(3, 1, 1)
+    plt.title("vel")
+    plt.plot(T, vel)
+    plt.subplot(3, 1, 2)
+    plt.title("acc")
+    plt.plot(T, acc)
+    plt.subplot(3, 1, 3)
+    plt.title("dist")
+    plt.plot(T, dist)
     plt.show()
-
-    

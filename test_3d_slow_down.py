@@ -17,7 +17,8 @@ if __name__ == "__main__":
     # print find_nearest(traj,tr_point)
 
     new_traj, new_timeline = get_slowed_down_traj(traj, timeline, tr_point, tr_vel, smooth_start=True)
-    pos_traj = new_traj[:,2]
+    pos_traj = new_traj[:-300,2]
+    new_timeline = new_timeline[:-300]
     # print new_traj.shape, new_timeline.shape
     # new_traj_map = interp1d(new_timeline, new_traj, axis=0)
     # new_timeline = np.linspace(new_timeline[0],new_timeline[-1],10000)
@@ -33,27 +34,40 @@ if __name__ == "__main__":
     acc = np.gradient(vel,new_timeline)
     # print acc
     acc[acc>100]=0
+
+    jerk = np.gradient(acc,new_timeline)
     # acc_map = UnivariateSpline(new_timeline,acc,s=50.0)
     # acc = acc_map(new_timeline)
+    # print jerk.max()
+    # print jerk.min()
     
-    plt.subplot(3,1,1)
+    plt.subplot(4,1,1)
     plt.ylabel("Vel Profile")
     plt.plot(new_timeline,vel,label='vel')
     plt.grid()
+    plt.xlim([0,5])
 
     # plt.xlim(0,1)
-    plt.subplot(3,1,2)
+    plt.subplot(4,1,2)
     plt.plot(new_timeline,pos_traj,label='pos')
     # plt.plot(timeline,tot_pos,label='old_pos')
     plt.ylabel("Pos Traj")
-    # plt.xlim([3.5,5.1])
+    # plt.xlim([4.5,5.1])
     plt.grid()
+    plt.xlim([0,5])
     # plt.xlim([4,5.5])
     # plt.xlim(0,1)
-    plt.subplot(3,1,3)
+    plt.subplot(4,1,3)
     plt.plot(new_timeline,acc,label='acc')
     plt.ylabel("Acc Profile")
     plt.grid()
+    plt.xlim([0,5])
+
+    plt.subplot(4, 1, 4)
+    plt.plot(new_timeline, jerk, label='acc')
+    plt.ylabel("Jerk Profile")
+    plt.grid()
+    plt.xlim([0,5])
     # plt.xlim([4,5.5])
     # plt.xlim(850,950)
     plt.xlabel('time')

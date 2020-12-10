@@ -1,12 +1,15 @@
 import numpy as np
-from tanh_vel_profile import HyperbolicTangentVelocityProfile as TanhVP
+from tanh_vel_profile import HyperbolicTangentVelocityProfile as TanhVp
 from smooth_exp_vel_profile import BoundedSmoothVelocityProfile as BSVp
-from sigmoid_vel_profile import SigmoidVelocityProfile as SigVP
+from sigmoid_vel_profile import SigmoidVelocityProfile as SigVp
+from cubic_spline_vel_profile import CubicHermiteSplineProfile as CHSVp
+from c4_vel_profile import C4SmoothVelocityProfile as C4Vp
+from quintic_spline_vel_profile import QuinticHermiteSplineProfile as QHSVp
 from scipy.interpolate import UnivariateSpline, interp1d
 import matplotlib.pyplot as plt
 from velprof_utils import get_distance_from_vel_curve
 
-PROFILE_TYPE = BSVp # TanhVP
+PROFILE_TYPE = C4Vp  # [TanhVp,BSVp,SigVp,CHSVp,C4Vp,QHSVp]
 
 def find_nearest(array, value):
     if len(array.shape) == 1:

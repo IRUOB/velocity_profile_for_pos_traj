@@ -17,10 +17,11 @@ if __name__ == "__main__":
     # print vel.size, new_timeline.size
     acc = np.gradient(vel,new_timeline, axis=0)
 
+    jerk = np.gradient(acc, new_timeline, axis=0)
     # acc_map = UnivariateSpline(new_timeline,acc,s=50.0)
     # acc = acc_map(new_timeline)
     
-    plt.subplot(3,1,1)
+    plt.subplot(4,1,1)
     plt.ylabel("Vel Profile")
     plt.plot(new_timeline,vel,label='vel')
     # plt.
@@ -29,7 +30,7 @@ if __name__ == "__main__":
     # plt.xlim([4,5.5])
 
     # plt.xlim(0,1)
-    plt.subplot(3,1,2)
+    plt.subplot(4,1,2)
     plt.plot(new_timeline,new_traj,label='pos')
     plt.plot(timeline,traj)
     # plt.plot(new_timeline[new_traj<=3],new_traj[new_traj<=3])
@@ -38,10 +39,15 @@ if __name__ == "__main__":
     plt.grid()
     # plt.xlim([4,5.5])
     # plt.xlim(0,1)
-    plt.subplot(3,1,3)
+    plt.subplot(4,1,3)
     plt.plot(new_timeline,acc,label='acc')
     # plt.plot(new_timeline[new_traj<=3],acc[new_traj<=3])
     plt.ylabel("Acc Profile")
+    plt.grid()
+
+    plt.subplot(4, 1, 4)
+    plt.plot(new_timeline, jerk, label='acc')
+    plt.ylabel("Jerk Profile")
     plt.grid()
     # plt.xlim([4,5.5])
     # plt.xlim(850,950)
