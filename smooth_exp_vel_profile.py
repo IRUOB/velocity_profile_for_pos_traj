@@ -11,7 +11,7 @@ class BoundedSmoothVelocityProfile(object):
         def f(x):
             y = x.copy()
             y[y<=0.] = 0.
-            y[y>0.] = np.exp(-1./(y[y>0.]/T))
+            y[y>0.] = np.exp(-1./(y[y>0.]))
             return y
 
         def g_(x):
@@ -24,7 +24,7 @@ class BoundedSmoothVelocityProfile(object):
         
     def __init__(self, start_vel=0.1, stop_vel=1., transition_time=1, resolution=1000, *args, **kwargs):
 
-        self._max_time = transition_time
+        self._max_time = float(transition_time)
         self._vel_map = lambda x: BoundedSmoothVelocityProfile.g(
             x, self._max_time, start_vel, stop_vel)
 
@@ -41,7 +41,7 @@ class BoundedSmoothVelocityProfile(object):
         return self.get_velocity_at(timeline), timeline
 
     def get_total_distance_at(self, t, resolution=1000):
-        return self.get_full_distance_curve(resolution=resolution)[0][int(t*resolution)-1]
+        return self.get_full_distance_curve(resolution=resolution)[0][int(t/self._max_time*resolution)-1]
 
     def get_full_distance_curve(self, resolution=1000):
         vel_curve, timeline = self.get_full_velocity_curve(

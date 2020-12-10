@@ -35,10 +35,10 @@ def get_traj_representations(traj, timeline, one_d = True):
     if one_d:
         dist_array = np.linalg.norm(dist_array, axis=1)
         vel = np.linalg.norm(vel,axis=1)
-
+    # print vel,"VEL"
     return dist_array.copy(), vel.copy()
 
-def smooth_start_traj(traj, timeline, smooth_start_duration=1., start_vel=0., end_vel=None, interpolated=True):
+def smooth_start_traj(traj, timeline, smooth_start_duration=0.2, start_vel=0., end_vel=None, interpolated=True):
     """
     Modify the provided trajectory to provide a smooth start (tanh velocity curve) starting
     with a zero velocity (unless 'start_vel' value is specified).
@@ -91,7 +91,7 @@ def smooth_start_traj(traj, timeline, smooth_start_duration=1., start_vel=0., en
     pos = get_distance_from_vel_curve(full_vel_curve, full_timeline)
 
     assert full_vel_curve.size == full_timeline.size
-    # print pos[-1], dist_array[-1]
+    print pos[-1], dist_array[-1]
     assert np.allclose(pos[-1],dist_array[-1],rtol=1.e-3)
 
     final_traj = dist_to_pos_map(pos)
@@ -105,7 +105,7 @@ def smooth_start_traj(traj, timeline, smooth_start_duration=1., start_vel=0., en
 
 
 
-def get_slowed_down_traj(traj, timeline, tr_point, tr_vel, transition_duration=1., interpolated=False, smooth_start=True, return_transition_t=False, **smooth_start_kwargs):
+def get_slowed_down_traj(traj, timeline, tr_point, tr_vel, transition_duration=0.5, interpolated=True, smooth_start=True, return_transition_t=False, **smooth_start_kwargs):
     """
     Get the modified position trajectory when the velocity has to be switched to 'tr_vel' smoothly
     by the time it enters 'tr_point'. For optimality, the velocity transition should be completed
@@ -135,6 +135,9 @@ def get_slowed_down_traj(traj, timeline, tr_point, tr_vel, transition_duration=1
     # The cumsum distance is used as a 1D representation of the trajectory
     dist_array, ori_vel_prof = get_traj_representations(traj, timeline, one_d=True)
     ori_vel_avg = ori_vel_prof.mean() # assuming this is the velocity at the region where the switching has to start
+    print ori_vel_avg, "AVGG"
+
+    dist_to_traj_map = interp1d(dist_array, traj, kind='cubic', axis=0)
     
     timeline = timeline.flatten()
 
@@ -153,28 +156,25 @@ def get_slowed_down_traj(traj, timeline, tr_point, tr_vel, transition_duration=1
 
     # get the transition velocity curve and timeline, and add uniform velocity curve at its end to maintain the 'tr_vel'
     tanh_vel_curve, tanh_timeline = vp.get_full_velocity_curve()
+
     transition_timeline = np.append(tanh_timeline, np.asarray([tanh_timeline[-1]+(tanh_timeline[-1]-tanh_timeline[-2])*(n+1) for n in range(int((timeline.size - tanh_end_idx)*1.1*ori_vel_avg/tr_vel))])) # the tail length depends on the ratio between the new and old velocity + extra to be safe
     transition_vel_curve = np.append(tanh_vel_curve,np.asarray([tr_vel for _ in range(transition_timeline.size - tanh_vel_curve.size)]))
 
     # get total distance curve when using this new velocity profile
     pos = get_distance_from_vel_curve(transition_vel_curve, transition_timeline)
-    pos = pos[pos<=dist_array[-1]-dist_array[tanh_start_idx]] # remove extra part from tail
-    transition_timeline = transition_timeline[:pos.size]
 
-    # create a distance to position map for the region in traj that starts with transition, after interpolating it to same size as pos
-    act_pos_reshaped = interp1d(np.arange(dist_array[tanh_start_idx:].size), traj[tanh_start_idx:,:],axis=0, kind='cubic')(
-        np.linspace(0, dist_array[tanh_start_idx:].size-1, pos.size))
-    dist_to_pos_map = interp1d(np.linspace(pos[0],pos[-1],pos.size), act_pos_reshaped,kind='cubic', axis=0)
-
-    # find the modified trajectory mapped by the updated timeline
-    act_time_to_dist_map = interp1d(transition_timeline,pos,kind='cubic') # create a mapping from new timeline to new distance traj
-    updated_pos_part = dist_to_pos_map(act_time_to_dist_map(transition_timeline)) # get the position traj for the new time line
-
+    pos += dist_array[tanh_start_idx]
     transition_timeline += timeline[tanh_start_idx] # update start of transition timeline to begin with the end of the prev part
-
-    # create final position traj by appending the newly created position traj to the end of the original trajectory's first part
-    final_traj = np.vstack([traj[:tanh_start_idx,:],updated_pos_part])
     final_timeline = np.append(timeline[:tanh_start_idx],transition_timeline)
+
+    final_pos = np.append(dist_array[:tanh_start_idx],pos)
+    final_pos = final_pos[final_pos <= dist_array[-1]]
+    final_timeline = final_timeline[:final_pos.size]
+
+    timeline_to_dist_map = interp1d(final_timeline, final_pos, kind='cubic', axis=0)
+    
+    final_timeline = np.linspace(final_timeline[0],final_timeline[-1],final_timeline.size)
+    final_traj = dist_to_traj_map(timeline_to_dist_map(final_timeline))
 
     if interpolated:
         final_traj_map = interp1d(final_timeline, final_traj, kind='cubic', axis=0)
@@ -182,7 +182,7 @@ def get_slowed_down_traj(traj, timeline, tr_point, tr_vel, transition_duration=1
         final_traj = final_traj_map(final_timeline)
     
     if smooth_start:
-        return smooth_start_traj(final_traj, final_timeline, end_vel=ori_vel_avg, interpolated=interpolated, **smooth_start_kwargs)
+        final_traj, final_timeline = smooth_start_traj(final_traj, final_timeline, end_vel=ori_vel_avg, interpolated=interpolated, **smooth_start_kwargs)
     
     if return_transition_t:
         return final_traj, final_timeline, transition_timeline[0]

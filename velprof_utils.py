@@ -33,6 +33,7 @@ class LogisticFuncUtils(object):
 
     @staticmethod
     def solve_for_k(x, y,x0=0.,L=1,startval=0):
+        # print "THIS", (L-startval)/(y-startval) - 1
         return -(np.log((L-startval)/(y-startval) - 1))/(x-x0)
 
 def get_distance_from_vel_curve(vel_profile, timeline):

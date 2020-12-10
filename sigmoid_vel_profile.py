@@ -6,12 +6,11 @@ from velprof_utils import LogisticFuncUtils as SigFunc
 
 class SigmoidVelocityProfile(object):
 
-    def __init__(self, start_vel=0.1, stop_vel=1., transition_time=1, sigmoid_bound_percent=0.995):
+    def __init__(self, start_vel=0.1, stop_vel=1., transition_time=1, resolution = None, sigmoid_bound_percent=0.995):
 
         self._startval = start_vel
         self._L = stop_vel
         self._x0 = float(transition_time)/2
-
         self._k = self._find_k_with_check(sigmoid_bound_percent)
 
     def _find_k_with_check(self, sigmoid_bound_percent):
@@ -20,7 +19,7 @@ class SigmoidVelocityProfile(object):
 
         k1 = SigFunc.solve_for_k(0,y1,self._x0,self._L,self._startval)
         k2 = SigFunc.solve_for_k(self._x0*2,y2,self._x0,self._L,self._startval)
-
+        # print k1, k2, self._x0, self._L, self._startval,y1,y2
         assert np.isclose(k1,k2,rtol=1.e-6,atol=0.0), "Error computing logarithmic growth rate k for sigmoid! Diff: {}".format(np.abs(k1-k2))
         return k1
 
@@ -35,7 +34,7 @@ class SigmoidVelocityProfile(object):
         return self.get_velocity_at(timeline), timeline
 
     def get_total_distance_at(self, t, resolution=1000):
-        return self.get_full_distance_curve(resolution=resolution)[0][t]
+        return self.get_full_distance_curve(resolution=resolution)[0][int(t/(self._x0*2)*resolution)-1]
 
     def get_full_distance_curve(self, resolution=1000):
         vel_curve, timeline = self.get_full_velocity_curve(resolution=resolution)
@@ -48,12 +47,12 @@ class SigmoidVelocityProfile(object):
         return np.gradient(v,t), t
 
     def get_acceleration_at(self, t, resolution=1000):
-        return self.get_full_acceleration_curve()[0][t]
+        return self.get_full_acceleration_curve()[0][int(t/(self._x0*2)*resolution)-1]
         
 
 if __name__ == "__main__":
 
-    svp = SigmoidVelocityProfile(start_vel=0., stop_vel=1.,sigmoid_bound_percent=0.99)
+    svp = SigmoidVelocityProfile(start_vel=0., stop_vel=0.5, transition_time=0.5,sigmoid_bound_percent=0.99)
 
     v, t = svp.get_full_velocity_curve()
     d, _ = svp.get_full_distance_curve()

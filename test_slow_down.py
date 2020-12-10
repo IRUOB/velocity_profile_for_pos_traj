@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from pos_traj_modifier import get_slowed_down_traj
+from pos_traj_modifier import get_slowed_down_traj, smooth_start_traj
 
 if __name__ == "__main__":
     
@@ -10,7 +10,8 @@ if __name__ == "__main__":
     tr_point = 3
     tr_vel = 0.5
 
-    new_traj, new_timeline = get_slowed_down_traj(traj, timeline, tr_point, tr_vel, smooth_start=False)
+    new_traj, new_timeline = get_slowed_down_traj(traj, timeline, tr_point, tr_vel, smooth_start=False, transition_duration=0.5)
+    # new_traj, new_timeline = smooth_start_traj(traj, timeline, smooth_start_duration=1.8)
     # print new_traj.shape, new_timeline.shape
     vel = np.gradient(new_traj,new_timeline, axis=0)
     # vel_map = interp1d(new_timeline,vel)

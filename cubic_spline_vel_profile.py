@@ -44,7 +44,7 @@ class CubicHermiteSplineProfile(object):
         return self.get_velocity_at(timeline), timeline
 
     def get_total_distance_at(self, t, resolution=1000):
-        return self.get_full_distance_curve(resolution=resolution)[0][int(t*resolution)-1]
+        return self.get_full_distance_curve(resolution=resolution)[0][int(t/self._max_time*resolution)-1]
 
     def get_full_distance_curve(self, resolution=1000):
         vel_curve, timeline = self.get_full_velocity_curve(
@@ -58,7 +58,7 @@ class CubicHermiteSplineProfile(object):
         return np.gradient(v, t), t
 
     def get_acceleration_at(self, t, resolution=1000):
-        return self.get_full_acceleration_curve(resolution=resolution)[0][int(t*resolution)-1]
+        return self.get_full_acceleration_curve(resolution=resolution)[0][int(t/self._max_time*resolution)-1]
 
 
 if __name__ == "__main__":

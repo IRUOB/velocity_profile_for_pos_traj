@@ -7,6 +7,7 @@ class HyperbolicTangentVelocityProfile(object):
     def __init__(self, start_vel=0.1, stop_vel=1., transition_time=1, resolution=1000, range_val=3.5):
 
         self._range_map = range_val
+        self._max_time=transition_time
         self._time_map = interp1d(np.linspace(0,transition_time,resolution),np.linspace(-self._range_map,self._range_map,resolution), kind='cubic')
         self._vel_map = interp1d(np.linspace(start_vel,stop_vel,resolution),np.linspace(-1.,1.,resolution), kind='cubic')
 
@@ -30,7 +31,7 @@ class HyperbolicTangentVelocityProfile(object):
         return self.get_velocity_at(timeline), timeline
 
     def get_total_distance_at(self, t, resolution=1000):
-        return self.get_full_distance_curve(resolution=resolution)[0][int(t*resolution)-1]
+        return self.get_full_distance_curve(resolution=resolution)[0][int(t/self._max_time*resolution)-1]
 
     def get_full_distance_curve(self, resolution=1000):
         vel_curve, timeline = self.get_full_velocity_curve(resolution=resolution)
@@ -43,7 +44,7 @@ class HyperbolicTangentVelocityProfile(object):
         return np.gradient(v,t), t
 
     def get_acceleration_at(self, t, resolution=1000):
-        return self.get_full_acceleration_curve()[0][t]
+        return self.get_full_acceleration_curve()[0][int(t/self._max_time*resolution)-1]
 
 if __name__ == "__main__":
 
