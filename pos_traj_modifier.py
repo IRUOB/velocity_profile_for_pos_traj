@@ -157,7 +157,7 @@ def get_slowed_down_traj(traj, timeline, tr_point, tr_vel, transition_duration=0
     # get the transition velocity curve and timeline, and add uniform velocity curve at its end to maintain the 'tr_vel'
     tanh_vel_curve, tanh_timeline = vp.get_full_velocity_curve()
 
-    transition_timeline = np.append(tanh_timeline, np.asarray([tanh_timeline[-1]+(tanh_timeline[-1]-tanh_timeline[-2])*(n+1) for n in range(int((timeline.size - tanh_end_idx)*1.1*ori_vel_avg/tr_vel))])) # the tail length depends on the ratio between the new and old velocity + extra to be safe
+    transition_timeline = np.append(tanh_timeline, np.asarray([tanh_timeline[-1]+(tanh_timeline[-1]-tanh_timeline[-2])*(n+1) for n in range(int((timeline.size - tanh_end_idx)*5.*ori_vel_avg/tr_vel))])) # the tail length depends on the ratio between the new and old velocity + extra to be safe
     transition_vel_curve = np.append(tanh_vel_curve,np.asarray([tr_vel for _ in range(transition_timeline.size - tanh_vel_curve.size)]))
 
     # get total distance curve when using this new velocity profile
@@ -176,6 +176,8 @@ def get_slowed_down_traj(traj, timeline, tr_point, tr_vel, transition_duration=0
     final_timeline = np.linspace(final_timeline[0],final_timeline[-1],final_timeline.size)
     final_traj = dist_to_traj_map(timeline_to_dist_map(final_timeline))
 
+    original_end_time = final_timeline[-1]
+
     if interpolated:
         final_traj_map = interp1d(final_timeline, final_traj, kind='cubic', axis=0)
         final_timeline = np.linspace(final_timeline[0],final_timeline[-1],final_timeline.size)
@@ -185,6 +187,6 @@ def get_slowed_down_traj(traj, timeline, tr_point, tr_vel, transition_duration=0
         final_traj, final_timeline = smooth_start_traj(final_traj, final_timeline, end_vel=ori_vel_avg, interpolated=interpolated, **smooth_start_kwargs)
     
     if return_transition_t:
-        return final_traj, final_timeline, transition_timeline[0]
+        return final_traj, final_timeline, transition_timeline[0] + (final_timeline[-1] - original_end_time)
     else:
         return final_traj, final_timeline
