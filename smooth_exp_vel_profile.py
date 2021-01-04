@@ -7,21 +7,19 @@ class BoundedSmoothVelocityProfile(object):
     @staticmethod
     def g(x, T, v1, v2):
         x = np.asarray(x)
-        
-        def f(x):
-            y = x.copy()
-            y[y<=0.] = 0.
-            y[y>0.] = np.exp(-1./(y[y>0.]))
-            return y
 
         def g_(x):
             y = x.copy()
-            y[y >= 1.] = 1.
-            y = f(y)/(f(y)+f(1.-y))
-            return y*v2 + (1-y)*v1
-            
+            idx = np.where((y>0) & (y < 1))
+            y[y >= 1] = v2
+            y[y <= 0] = v1
+            # y[idx] = v1 + (v2-v1)*np.exp(-1./(y[idx])) / \
+            #     (np.exp(-1./(y[idx]))+np.exp(-1./(1-y[idx])))
+            y[idx] = v1 + (v2-v1)/(1+np.exp((1-2*y[idx])/(y[idx] - np.square(y[idx]))))
+            return y
+
         return g_(x/T)
-        
+
     def __init__(self, start_vel=0.1, stop_vel=1., transition_time=1, resolution=1000, *args, **kwargs):
 
         self._max_time = float(transition_time)
@@ -57,13 +55,39 @@ class BoundedSmoothVelocityProfile(object):
     def get_acceleration_at(self, t, resolution=1000):
         return self.get_full_acceleration_curve()[0][t]
 
-
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
+    from velprof_utils import get_distance_from_vel_curve
     a = BoundedSmoothVelocityProfile.g
-    b = np.linspace(-1.,1.5,100)
-    y= a(b)
-    plt.plot(b,y)
-    plt.show()
+    b = np.linspace(-0,1.5,100)
+    y= a(b,1,1.2,0.5)
 
-    
+    plt.subplot(4,1,1)
+    plt.plot(b,y)
+    plt.title("Velocity Curve")
+    plt.axvline(0, c="g", linestyle="--", label="transition start")
+    plt.axvline(1,  c="r", linestyle="--", label="transition end")
+    plt.legend()
+    plt.xticks([], [])
+    # plt.ylabel("Speed")
+    plt.subplot(4, 1, 2)
+    plt.plot(b, get_distance_from_vel_curve(y, b))
+    plt.xticks([],[])
+    plt.title("Distance Traj")
+    plt.axvline(0, c="g", linestyle="--")
+    plt.axvline(1,  c="r", linestyle="--")
+    plt.subplot(4,1,3)
+    acc = np.gradient(y,b)
+    plt.plot(b,acc)
+    plt.title("Acceleration Curve")
+    plt.axvline(0, c="g", linestyle="--")
+    plt.axvline(1,  c="r", linestyle="--")
+    plt.xticks([],[])
+    plt.subplot(4, 1, 4)
+    jerk = np.gradient(acc, b)
+    plt.plot(b, jerk)
+    plt.title("Jerk Curve")
+    plt.axvline(0, c="g", linestyle="--")
+    plt.axvline(1,  c="r", linestyle="--")
+    plt.xlabel("Time")
+    plt.show()
